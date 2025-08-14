@@ -21,6 +21,14 @@ final class AuthenticationGetUserGroupsEventListener
     {
         // Map Azure roles to TYPO3 user groups
         if (!empty($event->getResource()['roles'])) {
+            $roles = is_array($event->getResource()['roles']) ? $event->getResource()['roles'] : GeneralUtility::trimExplode(',', $event->getResource()['roles'], true);
+
+            if (!$event->getAuthenticationService()->authInfo['loginType'] === 'FE'
+                && !empty($event->getAuthenticationService()->getConfig()['adminRole'])
+                && in_array($event->getAuthenticationService()->getConfig()['adminRole'], $roles, true)) {
+                unset($roles[array_search($event->getAuthenticationService()->getConfig()['adminRole'], $roles, true)]);
+            }
+
             $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
                                           ->getQueryBuilderForTable($event->getGroupTable());
             $typo3Roles = $queryBuilder
@@ -32,7 +40,6 @@ final class AuthenticationGetUserGroupsEventListener
                 ->executeQuery()
                 ->fetchAllAssociative();
 
-            $roles = is_array($event->getResource()['roles']) ? $event->getResource()['roles'] : GeneralUtility::trimExplode(',', $event->getResource()['roles'], true);
             $roles = ',' . implode(',', $roles) . ',';
 
             $newUserGroups = $event->getUserGroups();

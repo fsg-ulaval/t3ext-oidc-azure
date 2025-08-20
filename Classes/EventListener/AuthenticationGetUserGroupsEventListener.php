@@ -23,10 +23,14 @@ final class AuthenticationGetUserGroupsEventListener
         if (!empty($event->getResource()['roles'])) {
             $roles = is_array($event->getResource()['roles']) ? $event->getResource()['roles'] : GeneralUtility::trimExplode(',', $event->getResource()['roles'], true);
 
-            if (!$event->getAuthenticationService()->authInfo['loginType'] === 'FE'
-                && !empty($event->getAuthenticationService()->getConfig()['adminRole'])
+            if (!empty($event->getAuthenticationService()->getConfig()['adminRole'])
                 && in_array($event->getAuthenticationService()->getConfig()['adminRole'], $roles, true)) {
                 unset($roles[array_search($event->getAuthenticationService()->getConfig()['adminRole'], $roles, true)]);
+            }
+
+            if (!empty($event->getAuthenticationService()->getConfig()['maintainerRole'])
+                && in_array($event->getAuthenticationService()->getConfig()['maintainerRole'], $roles, true)) {
+                unset($roles[array_search($event->getAuthenticationService()->getConfig()['maintainerRole'], $roles, true)]);
             }
 
             $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)

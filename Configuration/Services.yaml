@@ -1,0 +1,14 @@
+services:
+  _defaults:
+    autowire: true
+    autoconfigure: true
+    public: true
+
+  FSG\OidcAzure\:
+    resource: '../Classes/*'
+
+  FSG\OidcAzure\EventListener\AuthenticationGetUserGroupsEventListener:
+    tags:
+      - name: event.listener
+        identifier: 'oidc-azure/authentication-get-user-groups-event'
+        event: Causal\Oidc\Event\AuthenticationGetUserGroupsEvent

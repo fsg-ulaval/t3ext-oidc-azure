@@ -17,18 +17,38 @@ final class ModifyUserEventListener
 {
     public function __invoke(ModifyUserEvent $event): void
     {
-        if (empty($event->getOidcResourceOwner()['roles']) || $event->getAuthenticationService()->authInfo['loginType'] === 'FE' || empty($event->getAuthenticationService()->getConfig()['adminRole'])) {
+        if ($event->getAuthenticationService()->authInfo['loginType'] === 'FE'
+            || empty($event->getOidcResourceOwner()['roles'])
+            || empty($event->getAuthenticationService()->getConfig()['adminRole'])) {
             return;
         }
 
         $roles = is_array($event->getOidcResourceOwner()['roles']) ? $event->getOidcResourceOwner()['roles'] : GeneralUtility::trimExplode(',', $event->getOidcResourceOwner()['roles'], true);
 
         $user = $event->getUser();
-        $user['admin'] = 0;
-        if (in_array($event->getAuthenticationService()->getConfig()['adminRole'], $roles, true)) {
-            $user['admin'] = 1;
+        if (!in_array($event->getAuthenticationService()->getConfig()['adminRole'], $roles, true)) {
+            // User is not an admin, set the value to zero.
+            $user['admin'] = 0;
+            $event->setUser($user);
+            $event->setIsSystemMaintainer(false);
+            return;
         }
 
+        // User is an admin
+        $user['admin'] = 1;
         $event->setUser($user);
+
+        if (empty($event->getAuthenticationService()->getConfig()['maintainerRole'])) {
+            // Service is not responsible
+            return;
+        }
+
+        if (!in_array($event->getAuthenticationService()->getConfig()['maintainerRole'], $roles, true)) {
+            $event->setIsSystemMaintainer(false);
+            return;
+        }
+
+        // User is an admin and has "System Maintainer" rights
+        $event->setIsSystemMaintainer(true);
     }
 }

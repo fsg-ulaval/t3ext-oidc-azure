@@ -8,10 +8,10 @@ $EM_CONF[$_EXTKEY] = [
     'author_company' => '',
     'author_email' => 'cyril.janody@fsg.ulaval.ca',
     'state' => 'stable',
-    'version' => '1.0.0-dev',
+    'version' => '1.0.0',
     'constraints' => [
         'depends' => [
-            'oidc' => '4.0.0-4.99.99',
+            'oidc' => '4.1.0-4.99.99',
             'php' => '8.2.0-8.4.99',
             'typo3' => '12.4.0-13.4.99',
         ],

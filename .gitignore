@@ -1,0 +1,16 @@
+.Build
+.DS_Store
+.cache
+.idea/
+.php-cs-fixer.cache
+.php_cs.cache
+Build/phpunit/.phpunit.result.cache
+Build/testing-docker/.env
+composer.json.*
+composer.json.orig
+composer.json.testing
+composer.lock
+Dockerfile
+Documentation-GENERATED-temp
+out.txt
+var/

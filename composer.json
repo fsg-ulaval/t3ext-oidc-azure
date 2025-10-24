@@ -22,7 +22,7 @@
 	],
 	"license": "GPL-2.0-or-later",
 	"require": {
-		"php": "^8.3",
+		"php": "^8.2",
 		"causal/oidc": "^4.0",
 		"thenetworg/oauth2-azure": "^2.2"
 	},

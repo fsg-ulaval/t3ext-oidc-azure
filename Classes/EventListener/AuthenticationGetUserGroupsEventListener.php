@@ -21,16 +21,27 @@ final class AuthenticationGetUserGroupsEventListener
     {
         // Map Azure roles to TYPO3 user groups
         if (!empty($event->getResource()['roles'])) {
+            $newUserGroups = $event->getUserGroups();
             $roles = is_array($event->getResource()['roles']) ? $event->getResource()['roles'] : GeneralUtility::trimExplode(',', $event->getResource()['roles'], true);
 
-            if (!empty($event->getAuthenticationService()->getConfig()['adminRole'])
-                && in_array($event->getAuthenticationService()->getConfig()['adminRole'], $roles, true)) {
-                unset($roles[array_search($event->getAuthenticationService()->getConfig()['adminRole'], $roles, true)]);
+            // If no admin role is configured, authentication service doesn't manage that capability nor system maintainers.
+            if (!empty($event->getAuthenticationService()->getConfig()->administratorRole)
+                && in_array($event->getAuthenticationService()->getConfig()->administratorRole, $roles, true)) {
+                $event->setIsAdministrator(true);
+                if (!empty($event->getAuthenticationService()->getConfig()->maintainerRole)
+                    && in_array($event->getAuthenticationService()->getConfig()->maintainerRole, $roles, true)) {
+                   $event->setIsSystemMaintainer(true);
+                }
             }
 
-            if (!empty($event->getAuthenticationService()->getConfig()['maintainerRole'])
-                && in_array($event->getAuthenticationService()->getConfig()['maintainerRole'], $roles, true)) {
-                unset($roles[array_search($event->getAuthenticationService()->getConfig()['maintainerRole'], $roles, true)]);
+            if (!empty($event->getAuthenticationService()->getConfig()->administratorRole)
+                && ($administratorRoleKey = array_search($event->getAuthenticationService()->getConfig()->administratorRole, $roles, true)) !== false) {
+                unset($roles[$administratorRoleKey]);
+            }
+
+            if (!empty($event->getAuthenticationService()->getConfig()->maintainerRole)
+                && ($maintainerRoleKey = array_search($event->getAuthenticationService()->getConfig()->maintainerRole, $roles, true)) !== false) {
+                unset($roles[$maintainerRoleKey]);
             }
 
             $queryBuilder = GeneralUtility::makeInstance(ConnectionPool::class)
@@ -45,8 +56,6 @@ final class AuthenticationGetUserGroupsEventListener
                 ->fetchAllAssociative();
 
             $roles = ',' . implode(',', $roles) . ',';
-
-            $newUserGroups = $event->getUserGroups();
             foreach ($typo3Roles as $typo3Role) {
                 // Convert the pattern into a proper regular expression
                 $subpatterns = GeneralUtility::trimExplode('|', $typo3Role['tx_oidc_pattern'], true);
